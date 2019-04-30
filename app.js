@@ -75,7 +75,7 @@ app.get('/hello', (req,res)=>{
 });
 
 app.post('/sendOTPtoProfessions',async(req,res,callback) =>{
-  const sendOtp = new SendOtp('274087AEoyZNYk5cc2deeb');
+  const sendOtp = new SendOtp(authKey);
   let result = await sendOtp.send('9994879415', '611332', function async(err, data, callback){
     console.log(data)
     if (data.type === "Success") {
