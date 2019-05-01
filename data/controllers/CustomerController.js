@@ -11,8 +11,8 @@ let authKey = require('../../config/key').authKey
 
 const Customer = require('./../models/customers');
 
-// // Image upload destination
-// var upload = multer({ dest: './images/' })
+// Image upload destination
+// var upload = multer({ dest: '../../public/images/' });
 // function imgUpload(upload.single('image_url'),req,res,next){
 //   next;
 // }
@@ -24,38 +24,52 @@ const Customer = require('./../models/customers');
 const getCustomerDetails = async function(req,res){
   console.log('inside otp')
   if (req.body.name && req.body.email && req.body.password && req.body.phoneno) {
-    const sendOtp = new SendOtp(authKey);
-    let messageOtp = await sendOtp.send(req.body.phoneno,'611332',function async(err, data){
-      if (err) {
-        console.log('inside error')
-        res.send(err)
-      }
-      console.log(data)
-    });
+    let checkCustomer = await Customer.findOne({email:req.body.email,phoneno:req.body.phoneno,is_active:1})
+    if (!checkCustomer) {
+      const sendOtp = new SendOtp(authKey);
+      let messageOtp = await sendOtp.send(req.body.phoneno,'611332',function async(err, data){
+        if (err) {
+          console.log('inside error')
+          res.send(err)
+        }
+        console.log(data)
+        res.send({message:"OTP has send to your number."})
+      });
+    }
+    else{
+        res.send({message:"This account is already exists."})
+    }
   }
   else{
     res.send('Please provide required arguments.')
   }
-  res.send('Done')
+  // res.send('Done')
 }
 
 const verifyCustomerPhoneno = async function(req,res){
-  const sendOtp = new SendOtp(authKey);
-  let verifyOtp = await sendOtp.verify(req.body.phoneno, req.body.otp, async function(err, data){
-    if (err) {
-      console.log(err)
-    }
-    else if (data.type === "success") {
-      let newCustomer = await customerSignup(req,res)
-      console.log('newCustomer')
-      console.log(newCustomer)
-      if (newCustomer) {
-        res.send({auth:true,token:newCustomer})
-      }else{
-        res.send('Something went wrong')
+  console.log('inside verify OTP')
+  let checkCustomer = await Customer.findOne({phoneno:req.body.phoneno,is_phoneno_verify:0})
+  if (checkCustomer) {
+    const sendOtp = new SendOtp(authKey);
+    let verifyOtp = await sendOtp.verify(req.body.phoneno, req.body.otp, async function(err, data){
+      if (err) {
+        console.log(err)
       }
-    }
-  });
+      else if (data.type === "success") {
+        let newCustomer = await customerSignup(req,res)
+        console.log('newCustomer')
+        console.log(newCustomer)
+        if (newCustomer) {
+          res.send({auth:true,token:newCustomer})
+        }else{
+          res.send({message:"Something went wrong"})
+        }
+      }
+    });
+  }
+  else{
+    res.send({message:"Customer ALready exists."})
+  }
 }
 
 //  Customer Signup
@@ -63,14 +77,21 @@ const customerSignup = async function(req,res){
   console.log('inside signup function')
   if (req.body.name && req.body.email && req.body.password && req.body.phoneno) {
     let hashedPassword = bcrypt.hashSync(req.body.password,8)
-    let customer = await Customer.create({name: req.body.name, email: req.body.email, password: hashedPassword,phoneno: req.body.phoneno})
-    if(customer){
-      let token = await jwt.sign({id:customer.id}, secret, {expiresIn: 86400})
-      // return token;
-      // res.status(200).send({auth: true, token: token});
-      return token;
+    let checkCustomer = await Customer.findOne({email:req.body.email,phoneno:req.body.phoneno})
+    if (!checkCustomer) {
+      let customer = await Customer.create({name: req.body.name, email: req.body.email, password: hashedPassword,phoneno: req.body.phoneno})
+      if(customer){
+        let token = await jwt.sign({id:customer.id}, secret, {expiresIn: 86400})
+        // return token;
+        // res.status(200).send({auth: true, token: token});
+        return token;
+      }else{
+        // res.status(500).send({auth: false, message: "There was a problem registering the user"});
+        return {message:"Something went wrong."}
+      }
     }else{
-      res.status(500).send({auth: false, message: "There was a problem registering the user"});
+      // res.send({message:"Already Available"})
+      return {message:"Already Available"}
     }
   }
   else{
@@ -78,74 +99,121 @@ const customerSignup = async function(req,res){
   }
 }
 
+// Send OTP API
+const sendOTPLogin = async function(req,res){
+  if (req.body.phoneno) {
+    let checkCustomer = await Customer.findOne({phoneno:req.body.phoneno})
+    if (!checkCustomer) {
+      res.send({message:"Number does'nt exists"})
+    }
+    else{
+      const sendOtp = new SendOtp(authKey);
+      let verifyOtp = await sendOtp.send(req.body.phoneno, 611332, async function(err, data){
+        if (err) {
+          res.send(err)
+        }
+        res.send({message:"OTP has send to your number."})
+      });
+    }
+  }
+  else{
+      res.send({message:"Please enter your number"})
+  }
+  const sendOtp = new SendOtp(authKey);
+
+}
+
 // Customer LogIn
 const customerLogin = async function(req,res){
   console.log("Login request received")
-  	if (req.body.email && req.body.password)
-  	{
-  		const checkcustomer = await Customer.findOne({where: {email: req.body.email}})
+  let checkcustomer
+  // Login Via email and password
+  if (req.body.email && req.body.password)
+  {
+  		checkcustomer = await Customer.findOne({email: req.body.email})
   		if (!checkcustomer) { res.status(404).send({auth: false, message: "No user found"})}
   		var passwordIsValid = bcrypt.compareSync(req.body.password, checkcustomer.password)
   		if (!passwordIsValid) { res.status(401).send({auth: false, message:"Check your password",token: null})}
   		var token = jwt.sign({id: checkcustomer.id}, secret, { expiresIn: 86400 })
   		res.status(200).send({auth: true, message:"Login success", token: token})
-  	}
-  	else{
+  }
+  // Login Via OTP
+  else if (req.body.phoneno && req.body.otp) {
+      checkcustomer = await Customer.findOne({phoneno: req.body.phoneno})
+      if (checkcustomer) {
+        const sendOtp = new SendOtp(authKey);
+        let verifyOtp = await sendOtp.verify(req.body.phoneno, req.body.otp, async function(err, data){
+          if (err) {
+            console.log(err)
+          }
+          else if (data.type === "success") {
+            res.send({message:"Login success"})
+          }
+        });
+      }
+      else {
+          res.send({message:"Number does'nt exists"})
+      }
+  }
+  else{
   		res.status(400).send({message:"Please provide the required parameters to login."})
-  	}
+  }
 }
 
 // View Profile
 const profile = async function(req,res){
-  let customerId
+  let customerId;
+  let getProfile;
   if (req.headers.token) {
     await jwt.verify(req.headers.token,secret,function(err,decoded){
       console.log(decoded)
       customerId = decoded.id
     })
-    let getProfile = await Customer.findOne({where:{id:customerId},attributes:['id','name','email','phoneno','image_url']})
+    getProfile = await Customer.findOne({_id:customerId})
     res.status(200).send({details:getProfile})
-  }else{
+  }
+  else if (req.query.phoneno) {
+    getProfile = await Customer.findOne({phoneno:req.query.phoneno},{name:1,email:1,phoneno:1,_id:1})
+    console.log(getProfile)
+    res.status(200).send({details:getProfile})
+  }
+  else{
     res.status(401).send({message:"Please provide token to see profile details"})
   }
 }
 
 // Update Profile
 // const uploadProfile = function(upload.single('image_url'))
-// const editProfile = async function(req,res,next){
-//   upload(req,res,function(err){
-//     console.log(req)
-//   )}
-//   // let upimg = imgUpload(req.file)
-//   console.log(upimg)
-//   let updateInfo;
-//   let filename;
-//   if (req.query.customerId) {
-//     if (req.file) {
-//       filename = req.file.path
-//       updateInfo = await Customer.update({image_url:filename},{where:{id: req.query.customerId}})
-//     }
-//     else if (req.query.name && req.file) {
-//       filename = req.file.path
-//       updateInfo = await Customer.update({name:req.query.name,image_url:filename},{where:{id:req.query.customerId}})
-//     }
-//     else{
-//       updateInfo = await Customer.update({name:req.query.name},{where:{id: req.query.customerId}})
-//     }
-//     let fetchDet = await Customer.findOne({where:{id:req.query.customerId}})
-//     res.status(200).send({details:fetchDet})
-//   }
-//   else{
-//       res.status(400).send({message:"Please provide the customerId to update the info"})
-//   }
-// }
+const editProfile = async function(req,res,next){
+  let filename;
+  let updateInfo;
+  if (req.query.customerId) {
+    if (req.file && !req.query.name) {
+      filename = req.file.path
+      updateInfo = await Customer.update({_id: req.query.customerId},{$set:{image_url:filename}})
+    }
+    else if (req.query.name && req.file) {
+      filename = req.file.path
+      updateInfo = await Customer.update({_id:req.query.customerId},{$set:{name:req.query.name,image_url:filename}})
+      // updateInfo = await Customer.update({name:req.query.name,image_url:filename},{_id:req.query.customerId})
+    }
+    else{
+      updateInfo = await Customer.update({_id: req.query.customerId},{$set:{name:req.query.name}})
+    }
+    let fetchDet = await Customer.findOne({_id:req.query.customerId})
+    res.status(200).send({details:fetchDet})
+  }
+  else{
+      res.status(400).send({message:"Please provide the customerId to update the info"})
+  }
+}
 
 module.exports = {
   customerSignup,
   customerLogin,
   profile,
   getCustomerDetails,
-  verifyCustomerPhoneno
-  // editProfile
-
+  verifyCustomerPhoneno,
+  sendOTPLogin,
+  editProfile
 }

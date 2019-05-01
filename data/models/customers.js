@@ -36,6 +36,10 @@ const CustomerSchema = new Schema({
       type: Number,
       default: 1
   },
+	is_phoneno_verify: {
+      type: Number,
+      default: 0
+  },
 });
 
 module.exports = Customer = mongoose.model("customers", CustomerSchema)
