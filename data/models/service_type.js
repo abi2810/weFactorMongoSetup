@@ -9,22 +9,16 @@ const ServiceTypeSchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	service_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	name:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	price:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	}
 });
 

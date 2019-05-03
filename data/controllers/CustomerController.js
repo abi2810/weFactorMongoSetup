@@ -10,6 +10,7 @@ var SendOtp = require('sendotp');
 let authKey = require('../../config/key').authKey
 
 const Customer = require('./../models/customers');
+const Address = require('./../models/address');
 
 // Image upload destination
 // var upload = multer({ dest: '../../public/images/' });
@@ -208,6 +209,44 @@ const editProfile = async function(req,res,next){
   }
 }
 
+//Add Address
+const newAddress = async function(req,res){
+  let customerId;
+  if (req.headers.token) {
+    await jwt.verify(req.headers.token,secret,function(err,decoded){
+      customerId = decoded.id
+    })
+    let newAd = await Address.create({
+      customer_id: customerId,
+      house_flat_no: req.query.house_flat_no,
+      landmark: req.query.landmark,
+      type: req.query.type,
+      lat:req.query.lat,
+      lang:req.query.lang
+    });
+    let getAddress = await Address.find({customer_id: customerId})
+    res.status(200).send({details:getAddress})
+  }
+  else{
+    res.send({message:"Please provide token"})
+  }
+}
+
+// Address List
+const viewAddress = async function(req,res){
+  let customerId;
+  if (req.headers.token) {
+    await jwt.verify(req.headers.token,secret,function(err,decoded){
+      customerId = decoded.id
+    })
+    let fetchAd = await Address.find({customer_id:customerId})
+    res.status(200).send({details:fetchAd})
+  }
+  else{
+    res.send({message:"Please provide token"})
+  }
+}
+
 module.exports = {
   customerSignup,
   customerLogin,
@@ -215,5 +254,7 @@ module.exports = {
   getCustomerDetails,
   verifyCustomerPhoneno,
   sendOTPLogin,
-  editProfile
+  editProfile,
+  newAddress,
+  viewAddress
 }

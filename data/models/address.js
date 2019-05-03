@@ -9,39 +9,22 @@ const AddressSchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	customer_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
 	},
 	house_flat_no:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	landmark:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
   type:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
   lat:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},lang:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
 
 });

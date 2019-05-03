@@ -9,56 +9,43 @@ const OrderSchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	service_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	service_type_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	customer_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
+	},
+	address_id:{
+		type: String,
+		required:true
 	},
 	status:{
-		type: DataTypes.STRING(1000),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:false
 	},
 	payment_type:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
 	},
 	schedule_date:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	schedule_time:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	is_added: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '1'
+      type: Number,
+      default:1
   },
 	is_active: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '0'
+      type: Number,
+      default:0
   }
 });
 

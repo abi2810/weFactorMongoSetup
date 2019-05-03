@@ -9,21 +9,16 @@ const ProfessionCategorySchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	category_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	profession_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	is_active: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '1'
+      type: Number,
+      default:1
   }
 });
 

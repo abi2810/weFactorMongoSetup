@@ -9,46 +9,33 @@ const ProfessionOrderSchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	order_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	profession_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+		type: String,
+		required:true
 	},
 	customer_review:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false
+		type: String,
+		required:false
 	},
 	status:{
-		type: DataTypes.STRING(1000),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:false
 	},
 	ratings:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:false
 	},
 	ratings_desc:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:false
 	},
 	is_active: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '1'
+      type: Number,
+      default:1
     },
-
 });
 
 module.exports = ProfessionOrder = mongoose.model("profession_order", ProfessionOrderSchema);

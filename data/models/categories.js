@@ -9,24 +9,17 @@ const CategorySchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	name:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	desc:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:false
 	},
 	image_url:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
-
 });
 
 module.exports = Category = mongoose.model("categories", CategorySchema);

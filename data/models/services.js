@@ -8,29 +8,21 @@ const ServiceSchema = new Schema({
 	// 	primaryKey: true,
 	// 	autoIncrement: true
 	// },
-	categories_id:{
-		type: DataTypes.INTEGER(11),
-		allowNull: false,
-		primaryKey: false,
-		autoIncrement: false
+	category_id:{
+		type: String,
+		required:true
 	},
 	name:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
+		type: String,
+		required:true
 		// autoIncrement: true
 	},
 	desc:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
 	image_url:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 });
 

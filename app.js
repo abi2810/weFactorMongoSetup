@@ -74,6 +74,16 @@ app.get('/hello', (req,res)=>{
 	res.send({msg:'Hello World  Checking'})
 });
 
+// // Upload general image
+// app.post('/uploadfile', upload.single('image_url'), function(req,res) {
+//   const host = req.host;
+//   const filePath = req.protocol + "://" + host + '/' + req.file.path;
+//   //home/tbc1/Documents/wefactordemo/images/1c09e54e680f964d678edcad97058889
+//   console.log(filePath)
+// 	res.send(req.file)
+// })
+
+// Send OTP to professions
 app.post('/sendOTPtoProfessions',async(req,res,callback) =>{
   const sendOtp = new SendOtp(authKey);
   let result = await sendOtp.send('9994879415', '611332', function async(err, data, callback){

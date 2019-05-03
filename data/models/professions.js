@@ -9,62 +9,43 @@ const ProfessionSchema = new Schema({
 	// 	autoIncrement: true
 	// },
 	name:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	email:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
 	phoneno:{
-		type: DataTypes.STRING(11),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	password:{
-		type: DataTypes.STRING(100),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
 	services_known:{
-		type: DataTypes.STRING(500),
-		allowNull: true,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String
 	},
 	area:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	city:{
-		type: DataTypes.STRING(100),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: String,
+		required:true
 	},
 	pincode:{
-		type: DataTypes.INTEGER(6),
-		allowNull: false,
-		primaryKey: false,
-		// autoIncrement: true
+		type: Number,
+		required:true
 	},
 	is_active: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '1'
+      type: Number,
+      default:1,
+			required:true
   },
   is_verify: {
-      type: DataTypes.INTEGER(1),
-      allowNull: false,
-      defaultValue: '0'
+      type: Number,
+      default:0,
+			required:true
   }
 });
 
