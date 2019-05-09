@@ -101,5 +101,4 @@ app.post('/sendOTPtoProfessions',async(req,res,callback) =>{
   res.send('Done')
 })
 
-
 module.exports = app;

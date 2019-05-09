@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-// Image Uplload
+// Image Upload
 var multer = require('multer');
 var upload = multer({ dest: './public/images/' });
 var uploadProfileCustomer = multer({ dest: './public/images/profileCustomers/'});
 var uploadProfileProfession = multer({ dest: './public/images/profileProfession/'});
 var uploadCategory = multer({ dest: './public/images/category/'});
 var uploadService = multer({ dest: './public/images/service/'});
+var uploadDocument = multer({ dest: './public/images/companyDocuments/'});
 
 // Import the controllers
 const AdminController = require('../data/controllers/AdminController');
@@ -15,6 +16,8 @@ const ProfessionController = require('../data/controllers/ProfessionController')
 const CategoryController = require('../data/controllers/CategoryController');
 const ServiceController = require('../data/controllers/ServiceController');
 const OrderController = require('../data/controllers/OrderController');
+const RegistartionPackageController = require('../data/controllers/RegistartionPackageController');
+const CompanyController = require('../data/controllers/CompanyController');
 
 // Set routes
 // Admin
@@ -48,5 +51,11 @@ router.put('/jobAcceptRejectComplete',ProfessionController.jobAcceptRejectComple
 router.post('/addtocart',OrderController.addtocart)
 router.get('/myCart',OrderController.myCart)
 router.get('/adminOrderList',OrderController.orderList)
+// Registartion Package
+router.post('/addRegPackage',RegistartionPackageController.addRegPackage)
+router.get('/getRegPackage',RegistartionPackageController.getRegPackage)
+// Company
+router.post('/registerCompany',uploadDocument.array('image_url'),CompanyController.registerCompany)
+router.post('/addCatCompany',CompanyController.addCatCompany)
 
 module.exports = router;
