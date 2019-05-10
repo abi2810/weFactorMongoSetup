@@ -2,12 +2,10 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const ProfessionSchema = new Schema({
-	// id:{
-	// 	type: DataTypes.INTEGER(11),
-	// 	allowNull: false,
-	// 	primaryKey: true,
-	// 	autoIncrement: true
-	// },
+	company_id:{
+		type: String,
+		required:true
+	},
 	name:{
 		type: String,
 		required:true
@@ -44,7 +42,7 @@ const ProfessionSchema = new Schema({
   },
   is_verify: {
       type: Number,
-      default:0,
+      default:1,
 			required:true
   }
 });

@@ -43,6 +43,10 @@ router.post('/addService',uploadService.single('image_url'),ServiceController.ne
 router.post('/addServiceType',ServiceController.newServiceType)
 router.get('/oneService',ServiceController.oneService)
 // Profession
+router.post('/addProfession',ProfessionController.addProfession)
+router.get('/viewProfession',ProfessionController.viewProfession)
+router.post('/sendOTPLoginProfession',ProfessionController.sendOTPLoginProfession)
+router.post('/professionLogin',ProfessionController.professionLogin)
 router.post('/professionSignup',uploadProfileProfession.single('image_url'),ProfessionController.professionSignup)
 router.get('/availableProfessions',ProfessionController.availableProfessions)
 router.put('/assignProfession',ProfessionController.assignProfession)
@@ -57,5 +61,8 @@ router.get('/getRegPackage',RegistartionPackageController.getRegPackage)
 // Company
 router.post('/registerCompany',uploadDocument.array('image_url'),CompanyController.registerCompany)
 router.post('/addCatCompany',CompanyController.addCatCompany)
+router.post('/payCategory',CompanyController.payCategory)
+router.put('/verifyCompanyCategory',CompanyController.verifyCompanyCategory)
+router.post('/companyLogin',CompanyController.companyLogin)
 
 module.exports = router;

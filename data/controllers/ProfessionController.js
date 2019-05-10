@@ -1,12 +1,105 @@
 var jwt = require('jsonwebtoken');
 var secret = 'supersecret';
+// Send OTP
+var SendOtp = require('sendotp');
+let authKey = require('../../config/key').authKey
 
+const Company = require('./../models/companies');
 const Profession = require('./../models/professions');
 const ProfessionCategory = require('./../models/profession_category');
 const Category = require('./../models/categories');
 const Service = require('./../models/services');
 const Customer = require('./../models/customers');
 const Admin = require('./../models/admin');
+
+
+// Add Professions under a company
+const addProfession = async function(req,res){
+  if (req.headers.token) {
+    await jwt.verify(req.headers.token,secret,function(err,decoded){
+      companyId = decoded.id
+    })
+    let checkCompany = Company.findOne({_id:companyId})
+    if (!checkCompany){res.status(401).send({message:"You are not allowed to do this job!"})}
+    if (req.query.phoneno) {
+      let checkProf = await Profession.findOne({phoneno:req.query.phoneno,is_verify:1})
+      if (checkProf) {res.send({message:"Profession is already available."})}
+      let newProf = await Profession.create({company_id:companyId,name:req.query.name,phoneno:req.query.phoneno,area:req.query.area,pincode:req.query.pincode,city:req.query.city})
+      res.send({details:newProf})
+    }
+    else{
+        res.send({error:"Please provide the phone no"})
+    }
+  }
+  else{
+    res.send({error:"Please provide token"})
+  }
+}
+
+// List Profession
+const viewProfession = async function(req,res){
+  if (req.headers.token) {
+    await jwt.verify(req.headers.token,secret,function(err,decoded){
+      companyId = decoded.id
+    })
+    let checkCompany = Company.findOne({_id:companyId})
+    if (!checkCompany){res.status(401).send({message:"You are not allowed to do this job!"})}
+    let getProf = await Profession.find({company_id:companyId,is_verify:1})
+    res.send({details:getProf})
+  }
+  else{
+    res.send({error:"Please provide token"})
+  }
+}
+
+// Send OTP API
+const sendOTPLoginProfession = async function(req,res){
+  if (req.body.phoneno) {
+    let checkProfession = await Profession.findOne({phoneno:req.body.phoneno})
+    if (!checkProfession) {
+      res.send({message:"Number does'nt exists"})
+    }
+    else{
+      const sendOtp = new SendOtp(authKey);
+      let verifyOtp = await sendOtp.send(req.body.phoneno, 611332, async function(err, data){
+        if (err) {
+          res.send(err)
+        }
+        res.send({message:"OTP has send to your number."})
+      });
+    }
+  }
+  else{
+      res.send({message:"Please enter your number"})
+  }
+}
+
+// profession Login
+const professionLogin = async function(req,res){
+  console.log("Login request received")
+  let checkProfession
+  // Login Via OTP
+  if (req.body.phoneno && req.body.otp) {
+      checkProfession = await Profession.findOne({phoneno: req.body.phoneno})
+      if (checkProfession) {
+        const sendOtp = new SendOtp(authKey);
+        let verifyOtp = await sendOtp.verify(req.body.phoneno, req.body.otp, async function(err, data){
+          if (err) {
+            console.log(err)
+          }
+          else if (data.type === "success") {
+            res.send({message:"Login success"})
+          }
+        });
+      }
+      else {
+          res.send({message:"Number does'nt exists"})
+      }
+  }
+  else{
+  		res.status(400).send({message:"Please provide the required parameters to login."})
+  }
+}
 
 
 
@@ -170,6 +263,10 @@ const jobAcceptRejectComplete = async function(req,res){
 }
 
 module.exports = {
+  addProfession,
+  viewProfession,
+  sendOTPLoginProfession,
+  professionLogin,
   professionSignup,
   availableProfessions,
   assignProfession,

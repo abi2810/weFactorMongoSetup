@@ -2,6 +2,7 @@ var jwt = require('jsonwebtoken');
 var secret = 'supersecret';
 
 const Order = require('./../models/orders');
+const Cart = require('./../models/cart');
 const Profession = require('./../models/professions');
 const ProfessionOrder = require('./../models/profession_order');
 const Customer = require('./../models/customers');
@@ -53,6 +54,48 @@ const addtocart = async function(req,res){
     res.send('Please provide token to continue.')
   }
 }
+// const addtocart = async function(req,res){
+//   if (req.headers.token) {
+//     let customerId = jwt.verify(req.headers.token,secret)
+//     let getCustomer = await Customer.findOne({_id: customerId.id,is_active:1,is_email_verify:1})
+//     if (getCustomer) {
+//       let newOrder = await Order.create({
+//         service_id: req.query.serviceId,
+//         service_type_id: req.query.serviceTypeId,
+//         customer_id: customerId.id,
+//         address_id: req.query.addressId,
+//         schedule_date: req.query.scheduleDate,
+//         schedule_time: req.query.scheduleTime
+//       })
+//       if (newOrder && req.query.professionId && req.query.pincode) {
+//         // let checkProf = await Profession.findOne({where:{id:req.query.professionId,pincode:req.query.pincode,is_active:1,is_verify:1}})
+//         let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode})
+//         console.log(checkProf)
+//         if (checkProf) {
+//           let sheduleProf = await ProfessionOrder.create({order_id:newOrder.id,profession_id:req.query.professionId})
+//           if (sheduleProf) {
+//             let updateOrder = await Order.update({_id: newOrder.id},{$set:{status:"Professional is scheduled for your request",is_active:1}})
+//             let updateProf = await ProfessionOrder.update({_id: sheduleProf.id},{$set:{status:"Scheduled"}})
+//           }else{
+//             res.send({message:"Problem in scheduling"})
+//           }
+//         }
+//         else{
+//           res.send({message:"No Profession found.Try again later."})
+//         }
+//       }else{
+//         res.send({message:"Pincode is missing"})
+//       }
+//       res.send({deatils:newOrder})
+//     }
+//     else{
+//         res.send({message:"No customer found."})
+//     }
+//   }
+//   else{
+//     res.send('Please provide token to continue.')
+//   }
+// }
 
 // Cart List
 const myCart = async function(req,res){
