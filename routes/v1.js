@@ -54,6 +54,8 @@ router.put('/jobAcceptRejectComplete',ProfessionController.jobAcceptRejectComple
 // Orders
 router.post('/addtocart',OrderController.addtocart)
 router.get('/myCart',OrderController.myCart)
+router.post('/placeOrder',OrderController.placeOrder)
+router.get('/companyOrderList',OrderController.companyOrderList)
 router.get('/adminOrderList',OrderController.orderList)
 // Registartion Package
 router.post('/addRegPackage',RegistartionPackageController.addRegPackage)
@@ -64,5 +66,6 @@ router.post('/addCatCompany',CompanyController.addCatCompany)
 router.post('/payCategory',CompanyController.payCategory)
 router.put('/verifyCompanyCategory',CompanyController.verifyCompanyCategory)
 router.post('/companyLogin',CompanyController.companyLogin)
+router.get('/availableCompanies',CompanyController.availableCompanies)
 
 module.exports = router;

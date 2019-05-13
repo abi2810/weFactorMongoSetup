@@ -10,7 +10,7 @@ const CompanyCategory = require('./../models/company_category');
 const RegistartionPackage = require('./../models/registartion_package');
 const Category = require('./../models/categories');
 const Service = require('./../models/services');
-// const Customer = require('./../models/customers');
+const Customer = require('./../models/customers');
 const Admin = require('./../models/admin');
 
 //Register a Company
@@ -166,11 +166,41 @@ const companyLogin = async function(req,res){
   }
 }
 
+// Available Company list to select from cart by pincode validation
+const availableCompanies = async function(req,res){
+  if (req.headers.token) {
+    let getId = jwt.verify(req.headers.token,secret)
+    let checkCustomer = await Customer.findOne({_id:getId.id})
+    if (req.query.pincode && req.query.serviceId) {
+      let getCat = await Service.findOne({_id:req.query.serviceId})
+      let checkCompCat = await CompanyCategory.find({category_id:getCat.category_id})
+      let companyId = await checkCompCat.map(x => x.company_id)
+      let getCompany = await Company.find(
+        {_id:companyId,pincode:req.query.pincode,is_active:1,is_verify:1},
+        {name:1,phoneno:1,area:1,city:1,pincode:1,is_active:1,is_verify:1}
+      )
+      console.log(getCompany)
+      if (getCompany.length !== 0) {
+        res.send({details:getCompany})
+      }
+      else{
+        res.send({message:"No company is available here.Try again later."})
+      }
+    }
+    else{
+        res.send({message:"Please provide pincode to get know about companies."})
+    }
+  }
+  else{
+      res.send({message:'Please provide token'})
+  }
+}
 
 module.exports = {
   registerCompany,
   addCatCompany,
   payCategory,
   verifyCompanyCategory,
-  companyLogin
+  companyLogin,
+  availableCompanies
 }

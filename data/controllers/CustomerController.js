@@ -220,6 +220,9 @@ const newAddress = async function(req,res){
       customer_id: customerId,
       house_flat_no: req.query.house_flat_no,
       landmark: req.query.landmark,
+      place: req.query.place,
+      city: req.query.city,
+      pincode: req.query.pincode,
       type: req.query.type,
       lat:req.query.lat,
       lang:req.query.lang

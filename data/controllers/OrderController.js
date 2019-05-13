@@ -5,6 +5,8 @@ const Order = require('./../models/orders');
 const Cart = require('./../models/cart');
 const Profession = require('./../models/professions');
 const ProfessionOrder = require('./../models/profession_order');
+const CompanyOrder = require('./../models/company_order');
+const Company = require('./../models/companies');
 const Customer = require('./../models/customers');
 const Admin = require('./../models/admin');
 const Service = require('./../models/services');
@@ -17,7 +19,7 @@ const addtocart = async function(req,res){
     let customerId = jwt.verify(req.headers.token,secret)
     let getCustomer = await Customer.findOne({_id: customerId.id,is_active:1,is_email_verify:1})
     if (getCustomer) {
-      let newOrder = await Order.create({
+      let newItem = await Cart.create({
         service_id: req.query.serviceId,
         service_type_id: req.query.serviceTypeId,
         customer_id: customerId.id,
@@ -25,26 +27,19 @@ const addtocart = async function(req,res){
         schedule_date: req.query.scheduleDate,
         schedule_time: req.query.scheduleTime
       })
-      if (newOrder && req.query.professionId && req.query.pincode) {
-        // let checkProf = await Profession.findOne({where:{id:req.query.professionId,pincode:req.query.pincode,is_active:1,is_verify:1}})
-        let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode})
-        console.log(checkProf)
-        if (checkProf) {
-          let sheduleProf = await ProfessionOrder.create({order_id:newOrder.id,profession_id:req.query.professionId})
-          if (sheduleProf) {
-            let updateOrder = await Order.update({_id: newOrder.id},{$set:{status:"Professional is scheduled for your request",is_active:1}})
-            let updateProf = await ProfessionOrder.update({_id: sheduleProf.id},{$set:{status:"Scheduled"}})
-          }else{
-            res.send({message:"Problem in scheduling"})
-          }
+      if (newItem && req.query.companyId && req.query.pincode) {
+        let checkComp = await Company.findOne({_id:req.query.companyId,pincode:req.query.pincode})
+        console.log(checkComp)
+        if (checkComp) {
+          let sheduleCompany = await CompanyOrder.create({cart_id:newItem.id,company_id:req.query.companyId})
         }
         else{
-          res.send({message:"No Profession found.Try again later."})
+          res.send({message:"No Company found.Try again later."})
         }
       }else{
         res.send({message:"Pincode is missing"})
       }
-      res.send({deatils:newOrder})
+      res.send({deatils:newItem})
     }
     else{
         res.send({message:"No customer found."})
@@ -54,48 +49,6 @@ const addtocart = async function(req,res){
     res.send('Please provide token to continue.')
   }
 }
-// const addtocart = async function(req,res){
-//   if (req.headers.token) {
-//     let customerId = jwt.verify(req.headers.token,secret)
-//     let getCustomer = await Customer.findOne({_id: customerId.id,is_active:1,is_email_verify:1})
-//     if (getCustomer) {
-//       let newOrder = await Order.create({
-//         service_id: req.query.serviceId,
-//         service_type_id: req.query.serviceTypeId,
-//         customer_id: customerId.id,
-//         address_id: req.query.addressId,
-//         schedule_date: req.query.scheduleDate,
-//         schedule_time: req.query.scheduleTime
-//       })
-//       if (newOrder && req.query.professionId && req.query.pincode) {
-//         // let checkProf = await Profession.findOne({where:{id:req.query.professionId,pincode:req.query.pincode,is_active:1,is_verify:1}})
-//         let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode})
-//         console.log(checkProf)
-//         if (checkProf) {
-//           let sheduleProf = await ProfessionOrder.create({order_id:newOrder.id,profession_id:req.query.professionId})
-//           if (sheduleProf) {
-//             let updateOrder = await Order.update({_id: newOrder.id},{$set:{status:"Professional is scheduled for your request",is_active:1}})
-//             let updateProf = await ProfessionOrder.update({_id: sheduleProf.id},{$set:{status:"Scheduled"}})
-//           }else{
-//             res.send({message:"Problem in scheduling"})
-//           }
-//         }
-//         else{
-//           res.send({message:"No Profession found.Try again later."})
-//         }
-//       }else{
-//         res.send({message:"Pincode is missing"})
-//       }
-//       res.send({deatils:newOrder})
-//     }
-//     else{
-//         res.send({message:"No customer found."})
-//     }
-//   }
-//   else{
-//     res.send('Please provide token to continue.')
-//   }
-// }
 
 // Cart List
 const myCart = async function(req,res){
@@ -103,8 +56,7 @@ const myCart = async function(req,res){
 		let getCustomer = jwt.verify(req.headers.token,secret)
 		let customer_id = getCustomer.id
     console.log(customer_id)
-		let cartDet = await Order.find({customer_id:customer_id,status:"Professional is scheduled for your request"})
-
+		let cartDet = await Cart.find({customer_id:customer_id,is_added:1})
 		let loopCart = await cartDet.map(async(li) => {
 			let getServname = await Service.findOne({_id:li.service_id},{name:1})
 			let getServType = await ServiceType.findOne({_id:li.service_type_id},{name:1,price:1})
@@ -113,7 +65,6 @@ const myCart = async function(req,res){
 			li['service_name'] = getServname.name
 			li['service_type'] = getServType.name
 			li['price'] = getServType.price
-			// cartDet.push(hashDet)
 			console.log(cartDet)
 		})
 		let loopResponse = await Promise.all(loopCart)
@@ -121,7 +72,59 @@ const myCart = async function(req,res){
 	}
 }
 
-// Orders List to Admin View
+// Place Order
+const placeOrder = async function(req,res){
+  console.log('inside placeorder')
+  let updateCart;
+  if (req.headers.token) {
+    let getCustomer = jwt.verify(req.headers.token,secret)
+		let customer_id = getCustomer.id
+    console.log(customer_id)
+    if (req.query.cartId) {
+      let checkCart = await Cart.findOne({_id:req.query.cartId,is_added:1,is_active:0})
+      console.log(checkCart)
+      let newOrder = await Order.create({cart_id:req.query.cartId,payment_type:"Cash"})
+      if (newOrder) {
+        activeCart = await Cart.updateMany({_id:checkCart.id},{$set:{is_active:1}})
+        activeCompOrder = await CompanyOrder.updateOne({_id:checkCart.id},{$set:{order_id:newOrder.id,is_active:1}})
+        console.log('activeCompOrder')
+        console.log(activeCompOrder)
+      }
+      else{
+          res.send({message:"Something went wrong."})
+      }
+      let fetchCart = await Cart.find({_id:checkCart.id,is_active:1})
+      res.send({orderId:newOrder._id,details:fetchCart})
+    }
+    else{
+      res.send({message:"Please provide cartId"})
+    }
+  }
+}
+
+// Company Order List
+const companyOrderList = async function(req,res){
+  if (req.headers.token) {
+    let getCompanyId = jwt.verify(req.headers.token,secret)
+    let checkCompany = await Company.findOne({_id:getCompanyId.id})
+    if (checkCompany) {
+      let getOrders = await Order.find({is_active:1})
+      let cartId = getOrders.map(x => x.cart_id)
+      let fetchCart = await Cart.find({_id:cartId})
+      console.log('fetchCart')
+      console.log(fetchCart)
+      res.send({details:fetchCart})
+    }
+    else{
+      res.send({message:"You are not allowed to see this list."})
+    }
+  }
+  else{
+      res.send({message:"Please provide token."})
+  }
+}
+
+// Orders List to Super Admin View
 const orderList = async function(req,res){
   if (req.headers.token) {
 		let adminId = jwt.verify(req.headers.token,secret)
@@ -153,5 +156,7 @@ const orderList = async function(req,res){
 module.exports = {
   addtocart,
   myCart,
+  placeOrder,
+  companyOrderList,
   orderList
 }

@@ -15,7 +15,7 @@ const OrderSchema = new Schema({
 	},
 	is_active: {
       type: Number,
-      default:0
+      default:1
   }
 });
 
