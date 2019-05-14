@@ -9,6 +9,9 @@ const OrderSchema = new Schema({
 	payment_type:{
 		type:String
 	},
+	status:{
+		type: String
+	},
 	is_paid: {
 			type: Number,
 			default:0

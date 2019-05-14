@@ -166,17 +166,17 @@ const availableProfessions = async function(req,res){
 // Admin to reassign the professionals to an order.
 const assignProfession = async function(req,res){
   if (req.headers.token) {
-    let adminId = jwt.verify(req.headers.token,secret)
-    let checkAdmin = await Admin.findOne({_id:adminId.id})
-    if (checkAdmin && req.query.orderId) {
-      let checkOrder = await Order.findOne({_id:req.query.orderId,is_added:1,is_active:0})
+    let companyId = jwt.verify(req.headers.token,secret)
+    let checkCompany = await Company.findOne({_id:companyId.id})
+    if (checkCompany && req.query.orderId) {
+      let checkOrder = await Order.findOne({_id:req.query.orderId,is_active:1})
       if (checkOrder && req.query.professionId && req.query.pincode){
-        let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode})
+        let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode,company_id:companyId.id})
         console.log(checkProf)
         if (checkProf) {
           let sheduleProf = await ProfessionOrder.create({order_id:req.query.orderId,profession_id:req.query.professionId})
           if (sheduleProf) {
-              let updateOrder = await Order.update({_id: req.query.orderId},{$set:{status:"Professional is scheduled for your request",is_active:1}})
+              let updateOrder = await Order.update({_id: req.query.orderId},{$set:{status:"Expert Assigned",is_active:1}})
               let updateProf = await ProfessionOrder.update({_id:sheduleProf.id},{$set:{status:"Scheduled"}})
           }else{
             res.send({message:"Problem in scheduling"})
@@ -199,6 +199,42 @@ const assignProfession = async function(req,res){
     res.send({message:"Please provide token to continue."})
   }
 }
+
+// const assignProfession = async function(req,res){
+//   if (req.headers.token) {
+//     let adminId = jwt.verify(req.headers.token,secret)
+//     let checkAdmin = await Admin.findOne({_id:adminId.id})
+//     if (checkAdmin && req.query.orderId) {
+//       let checkOrder = await Order.findOne({_id:req.query.orderId,is_added:1,is_active:0})
+//       if (checkOrder && req.query.professionId && req.query.pincode){
+//         let checkProf = await Profession.findOne({_id:req.query.professionId,pincode:req.query.pincode})
+//         console.log(checkProf)
+//         if (checkProf) {
+//           let sheduleProf = await ProfessionOrder.create({order_id:req.query.orderId,profession_id:req.query.professionId})
+//           if (sheduleProf) {
+//               let updateOrder = await Order.update({_id: req.query.orderId},{$set:{status:"Professional is scheduled for your request",is_active:1}})
+//               let updateProf = await ProfessionOrder.update({_id:sheduleProf.id},{$set:{status:"Scheduled"}})
+//           }else{
+//             res.send({message:"Problem in scheduling"})
+//           }
+//         }
+//         else{
+//           res.send({message:"No Profession found.Try again later."})
+//         }
+//         // res.send({details:checkOrder})
+//         res.send({message:"Profession is assigned to the order" + req.query.orderId})
+//       }
+//       else{
+//           res.send({message:"You are order is already placed."})
+//       }
+//     }
+//     else{
+//         res.send({message:"You are not allowed to do this action."})
+//     }
+//   }else{
+//     res.send({message:"Please provide token to continue."})
+//   }
+// }
 
 // Professions job List
 const myJob = async function(req,res){
@@ -262,6 +298,31 @@ const jobAcceptRejectComplete = async function(req,res){
   }
 }
 
+// Ratings and review for professions from customer
+const rateReview = async function(req,res){
+  let cartId;
+  if (req.headers.token) {
+    let getCustomer = jwt.verify(req.headers.token,secret)
+    let checkCustomer = await Customer.findOne({_id:getCustomer.id})
+    if (!checkCustomer) {res.send({error:"Customer not found"})}
+    let getCart = await Cart.find({customer_id:getCustomer.id,is_active:1})
+    let getOrder = await Order.find({cart_id:getCart.map(x => x.id),is_paid:1})
+    console.log(getOrder.map(x => x.id))
+    let getCompOrder = await CompanyOrder.find({order_id:getOrder.map(x => x.id),is_active:1})
+    let checkProfession = await Profession.find({company_id:getCompOrder.map(x => x.company_id)})
+    if (checkProfession) {
+      let list = await ProfessionOrder.find({profession_id: checkProfession.map(x => x.id),status:"Completed"})
+      let addRateReview = await ProfessionOrder.updateMany({profession_id: checkProfession.map(x => x.id)},{$set:{ratings:req.query.rate,rating_des:req.query.rateing_desc,customer_review:req.query.review}})
+      console.log(addRateReview)
+      let fetchReview = await ProfessionOrder.find({profession_id:checkProfession.map(x => x.id)})
+      res.send({details:fetchReview})
+    }
+  }
+  else{
+    res.send({message:"Please provide token."})
+  }
+}
+
 module.exports = {
   addProfession,
   viewProfession,
@@ -270,5 +331,6 @@ module.exports = {
   professionSignup,
   availableProfessions,
   assignProfession,
-  jobAcceptRejectComplete
+  jobAcceptRejectComplete,
+  rateReview
 }

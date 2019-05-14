@@ -86,7 +86,7 @@ const placeOrder = async function(req,res){
       let newOrder = await Order.create({cart_id:req.query.cartId,payment_type:"Cash"})
       if (newOrder) {
         activeCart = await Cart.updateMany({_id:checkCart.id},{$set:{is_active:1}})
-        activeCompOrder = await CompanyOrder.updateOne({_id:checkCart.id},{$set:{order_id:newOrder.id,is_active:1}})
+        activeCompOrder = await CompanyOrder.updateMany({cart_id:checkCart.id},{$set:{order_id:newOrder.id,is_active:1}})
         console.log('activeCompOrder')
         console.log(activeCompOrder)
       }
@@ -106,14 +106,26 @@ const placeOrder = async function(req,res){
 const companyOrderList = async function(req,res){
   if (req.headers.token) {
     let getCompanyId = jwt.verify(req.headers.token,secret)
-    let checkCompany = await Company.findOne({_id:getCompanyId.id})
+    let checkCompany = await Company.findOne({_id:getCompanyId.id},{name:1,gst_no:1,email:1,phoneno:1,address:1,area:1,city:1,pincode:1,is_active:1,is_verify:1})
     if (checkCompany) {
-      let getOrders = await Order.find({is_active:1})
+      let getOrders = await CompanyOrder.find({company_id:getCompanyId.id,is_active:1})
       let cartId = getOrders.map(x => x.cart_id)
       let fetchCart = await Cart.find({_id:cartId})
+      let loopOrder = await fetchCart.map(async(li) => {
+				let getServname = await Service.findOne({_id:li.service_id},{name:1})
+				let getServType = await ServiceType.findOne({_id:li.service_type_id},{name:1,price:1})
+				li._doc['service_name'] = getServname.name
+				li._doc['service_type'] = getServType.name
+				li._doc['price'] = getServType.price
+				delete li['service_id']
+				delete li['service_type_id']
+				delete li['createdAt']
+				delete li['updatedAt']
+			})
+			let loopResponse = await Promise.all(loopOrder)
       console.log('fetchCart')
-      console.log(fetchCart)
-      res.send({details:fetchCart})
+			console.log(fetchCart)
+      res.send({companyDetails:checkCompany,orderDetails:fetchCart})
     }
     else{
       res.send({message:"You are not allowed to see this list."})
@@ -131,20 +143,22 @@ const orderList = async function(req,res){
 		let checkAdmin = await Admin.findOne({_id:adminId.id})
 		if (checkAdmin) {
 			let getOrders = await Order.find({is_active:1})
-			let loopOrder = await getOrders.map(async(li) => {
+      let cartId = getOrders.map(x => x.cart_id)
+      let fetchCart = await Cart.find({_id:cartId})
+			let loopOrder = await fetchCart.map(async(li) => {
 				let getServname = await Service.findOne({_id:li.service_id},{name:1})
 				let getServType = await ServiceType.findOne({_id:li.service_type_id},{name:1,price:1})
-				li['service_name'] = getServname.name
-				li['service_type'] = getServType.name
-				li['price'] = getServType.price
+				li._doc['service_name'] = getServname.name
+				li._doc['service_type'] = getServType.name
+				li._doc['price'] = getServType.price
 				delete li['service_id']
 				delete li['service_type_id']
 				delete li['createdAt']
 				delete li['updatedAt']
 			})
 			let loopResponse = await Promise.all(loopOrder)
-			console.log(getOrders)
-			res.send({details:getOrders})
+			console.log(fetchCart)
+			res.send({details:fetchCart})
 		}else{
 			res.send({message:"You are not allowed to see this list."})
 		}

@@ -250,6 +250,8 @@ const viewAddress = async function(req,res){
   }
 }
 
+// Sample Pay API
+
 module.exports = {
   customerSignup,
   customerLogin,

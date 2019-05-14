@@ -51,6 +51,7 @@ router.post('/professionSignup',uploadProfileProfession.single('image_url'),Prof
 router.get('/availableProfessions',ProfessionController.availableProfessions)
 router.put('/assignProfession',ProfessionController.assignProfession)
 router.put('/jobAcceptRejectComplete',ProfessionController.jobAcceptRejectComplete)
+router.put('/rateReview',ProfessionController.rateReview)
 // Orders
 router.post('/addtocart',OrderController.addtocart)
 router.get('/myCart',OrderController.myCart)
