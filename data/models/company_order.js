@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const CompanyOrderSchema = new Schema({
-	cart_id:{
+	cart_item_id:{
 		type: String,
 		required:true
 	},

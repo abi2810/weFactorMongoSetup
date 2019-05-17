@@ -2,19 +2,7 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const CartSchema = new Schema({
-	service_id:{
-		type: String,
-		required:true
-	},
-	service_type_id:{
-		type: String,
-		required:true
-	},
 	customer_id:{
-		type: String,
-		required:true
-	},
-	address_id:{
 		type: String,
 		required:true
 	},
@@ -22,24 +10,13 @@ const CartSchema = new Schema({
 		type: String,
 		required:false
 	},
-	payment_type:{
-		type: String,
-	},
-	schedule_date:{
-		type: String,
-		required:true
-	},
-	schedule_time:{
-		type: String,
-		required:true
-	},
-	is_added: {
+	is_ordered: {
       type: Number,
-      default:1
+      default:0
   },
 	is_active: {
       type: Number,
-      default:0
+      default:1
   }
 });
 

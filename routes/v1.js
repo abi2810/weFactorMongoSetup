@@ -56,6 +56,7 @@ router.put('/rateReview',ProfessionController.rateReview)
 router.post('/addtocart',OrderController.addtocart)
 router.get('/myCart',OrderController.myCart)
 router.post('/placeOrder',OrderController.placeOrder)
+router.get('/myOrderList',OrderController.myOrderList)
 router.get('/companyOrderList',OrderController.companyOrderList)
 router.get('/adminOrderList',OrderController.orderList)
 // Registartion Package

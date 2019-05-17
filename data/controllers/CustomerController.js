@@ -11,6 +11,7 @@ let authKey = require('../../config/key').authKey
 
 const Customer = require('./../models/customers');
 const Address = require('./../models/address');
+const Cart = require('./../models/cart');
 
 // Image upload destination
 // var upload = multer({ dest: '../../public/images/' });
@@ -81,18 +82,19 @@ const customerSignup = async function(req,res){
     let checkCustomer = await Customer.findOne({email:req.body.email,phoneno:req.body.phoneno})
     if (!checkCustomer) {
       let customer = await Customer.create({name: req.body.name, email: req.body.email, password: hashedPassword,phoneno: req.body.phoneno})
+      let createCart = await Cart.create({customer_id:customer.id})
       if(customer){
         let token = await jwt.sign({id:customer.id}, secret, {expiresIn: 86400})
         // return token;
-        // res.status(200).send({auth: true, token: token});
-        return token;
+        res.status(200).send({auth: true, token: token});
+        // return token;
       }else{
-        // res.status(500).send({auth: false, message: "There was a problem registering the user"});
-        return {message:"Something went wrong."}
+        res.status(500).send({auth: false, message: "There was a problem registering the user"});
+        // return {message:"Something went wrong."}
       }
     }else{
-      // res.send({message:"Already Available"})
-      return {message:"Already Available"}
+      res.send({message:"Already Available"})
+      // return {message:"Already Available"}
     }
   }
   else{

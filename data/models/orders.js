@@ -6,11 +6,23 @@ const OrderSchema = new Schema({
 		type: String,
 		required:true
 	},
+	address_id:{
+		type: String,
+		required:true
+	},
 	payment_type:{
 		type:String
 	},
 	status:{
 		type: String
+	},
+	schedule_date:{
+		type: String,
+		required:true
+	},
+	schedule_time:{
+		type: String,
+		required:true
 	},
 	is_paid: {
 			type: Number,

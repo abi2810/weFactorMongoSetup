@@ -3,6 +3,7 @@ var secret = 'supersecret';
 
 const Order = require('./../models/orders');
 const Cart = require('./../models/cart');
+const CartItem = require('./../models/cart_items');
 const Profession = require('./../models/professions');
 const ProfessionOrder = require('./../models/profession_order');
 const CompanyOrder = require('./../models/company_order');
@@ -11,6 +12,7 @@ const Customer = require('./../models/customers');
 const Admin = require('./../models/admin');
 const Service = require('./../models/services');
 const ServiceType = require('./../models/service_type');
+const Address = require('./../models/address');
 
 // Make an Order - Add to Cart
 // Allow customer to add to cart,when they click continue to select addresses ask them to logIn.
@@ -19,19 +21,20 @@ const addtocart = async function(req,res){
     let customerId = jwt.verify(req.headers.token,secret)
     let getCustomer = await Customer.findOne({_id: customerId.id,is_active:1,is_email_verify:1})
     if (getCustomer) {
-      let newItem = await Cart.create({
+      let getCart = await Cart.findOne({customer_id:getCustomer.id})
+      let newItem = await CartItem.create({
         service_id: req.query.serviceId,
         service_type_id: req.query.serviceTypeId,
-        customer_id: customerId.id,
-        address_id: req.query.addressId,
-        schedule_date: req.query.scheduleDate,
-        schedule_time: req.query.scheduleTime
+        cart_id: getCart.id,
+        // address_id: req.query.addressId,
+        // schedule_date: req.query.scheduleDate,
+        // schedule_time: req.query.scheduleTime
       })
       if (newItem && req.query.companyId && req.query.pincode) {
         let checkComp = await Company.findOne({_id:req.query.companyId,pincode:req.query.pincode})
         console.log(checkComp)
         if (checkComp) {
-          let sheduleCompany = await CompanyOrder.create({cart_id:newItem.id,company_id:req.query.companyId})
+          let sheduleCompany = await CompanyOrder.create({cart_item_id:newItem.id,company_id:req.query.companyId})
         }
         else{
           res.send({message:"No Company found.Try again later."})
@@ -56,15 +59,17 @@ const myCart = async function(req,res){
 		let getCustomer = jwt.verify(req.headers.token,secret)
 		let customer_id = getCustomer.id
     console.log(customer_id)
-		let cartDet = await Cart.find({customer_id:customer_id,is_added:1})
+		let getCart = await Cart.findOne({customer_id:customer_id,is_active:1})
+    console.log(getCart)
+    let cartDet = await CartItem.find({cart_id:getCart.id,is_added:1})
 		let loopCart = await cartDet.map(async(li) => {
 			let getServname = await Service.findOne({_id:li.service_id},{name:1})
 			let getServType = await ServiceType.findOne({_id:li.service_type_id},{name:1,price:1})
       console.log(getServname.name)
       console.log(getServType)
-			li['service_name'] = getServname.name
-			li['service_type'] = getServType.name
-			li['price'] = getServType.price
+			li._doc['service_name'] = getServname.name
+			li._doc['service_type'] = getServType.name
+			li._doc['price'] = getServType.price
 			console.log(cartDet)
 		})
 		let loopResponse = await Promise.all(loopCart)
@@ -81,24 +86,54 @@ const placeOrder = async function(req,res){
 		let customer_id = getCustomer.id
     console.log(customer_id)
     if (req.query.cartId) {
-      let checkCart = await Cart.findOne({_id:req.query.cartId,is_added:1,is_active:0})
+      let checkCart = await Cart.findOne({_id:req.query.cartId,customer_id:customer_id,is_active:1})
       console.log(checkCart)
-      let newOrder = await Order.create({cart_id:req.query.cartId,payment_type:"Cash"})
+      let checkCartItems = await CartItem.find({cart_id:checkCart.id,is_added:1})
+      console.log('checkCartItems')
+      console.log(checkCartItems)
+      // return
+      let newOrder = await Order.create({cart_id:checkCart.id,address_id:req.query.addressId,payment_type:"Cash",schedule_date:req.query.scheduleDate,schedule_time:req.query.scheduleTime})
       if (newOrder) {
-        activeCart = await Cart.updateMany({_id:checkCart.id},{$set:{is_active:1}})
-        activeCompOrder = await CompanyOrder.updateMany({cart_id:checkCart.id},{$set:{order_id:newOrder.id,is_active:1}})
+        activeCart = await Cart.updateMany({_id:checkCart.id},{$set:{is_ordered:1}})
+        activeCompOrder = await CompanyOrder.updateMany({cart_item_id:checkCartItems.id},{$set:{order_id:newOrder.id,is_active:1}})
         console.log('activeCompOrder')
         console.log(activeCompOrder)
       }
       else{
           res.send({message:"Something went wrong."})
       }
-      let fetchCart = await Cart.find({_id:checkCart.id,is_active:1})
+      let fetchCart = await CartItem.find({cart_id:req.query.cartId,is_added:1})
+      console.log('fetchCart')
+      console.log(fetchCart)
       res.send({orderId:newOrder._id,details:fetchCart})
     }
     else{
       res.send({message:"Please provide cartId"})
     }
+  }
+}
+
+// My Order List
+const myOrderList = async function(req,res){
+  if (req.headers.token) {
+    let getCustomer = jwt.verify(req.headers.token,secret)
+    let customer_id = getCustomer.id
+    let checkCart = await Cart.findOne({customer_id:customer_id,is_ordered:1})
+    let checkOrder = await Order.findOne({cart_id:checkCart.id,is_active:1},{address_id:1,payment_type:1,schedule_date:1,schedule_time:1,is_active:1})
+    let getAddress = await Address.findOne({_id:checkOrder.address_id})
+    let cartDet = await CartItem.find({cart_id:checkCart.id,is_added:1})
+    let loopCart = await cartDet.map(async(li) => {
+      let getServname = await Service.findOne({_id:li.service_id},{name:1})
+      let getServType = await ServiceType.findOne({_id:li.service_type_id},{name:1,price:1})
+      console.log(getServname.name)
+      console.log(getServType)
+      li._doc['service_name'] = getServname.name
+      li._doc['service_type'] = getServType.name
+      li._doc['price'] = getServType.price
+      console.log(cartDet)
+    })
+    let loopResponse = await Promise.all(loopCart)
+    res.send({orderDetails:checkOrder,address:getAddress,categoryDetails:cartDet})
   }
 }
 
@@ -171,6 +206,7 @@ module.exports = {
   addtocart,
   myCart,
   placeOrder,
+  myOrderList,
   companyOrderList,
   orderList
 }
