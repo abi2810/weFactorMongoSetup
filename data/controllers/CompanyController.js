@@ -7,6 +7,8 @@ var secret = 'supersecret';
 const Company = require('./../models/companies');
 const CompanyDocument = require('./../models/company_documents');
 const CompanyCategory = require('./../models/company_category');
+const CompanyService = require('./../models/company_services');
+const CompanyServiceType = require('./../models/company_service_type');
 const RegistartionPackage = require('./../models/registartion_package');
 const Category = require('./../models/categories');
 const Service = require('./../models/services');
@@ -87,7 +89,7 @@ const addCatCompany = async function(req,res){
       categoryId = req.query.categoryId
       if (categoryId.length > 0) {
         categoryId = req.query.categoryId.split(',')
-        let checkCatComp = await CompanyCategory.find({category_id:categoryId})
+        let checkCatComp = await CompanyCategory.find({category_id:categoryId,company_id:req.query.companyId})
         console.log(checkCatComp)
         if (checkCatComp.length !== 0) {
           res.send({message:"This category is already available for your company."})
@@ -154,12 +156,12 @@ const companyLogin = async function(req,res){
   {
     // const checkadmin = await Admin.findOne({where: {email: req.body.email}})
     const checkCompany = await Company.findOne({email:req.body.email,gst_no:req.body.gst_no})
-  	if (!checkCompany) { res.status(404).send({auth: false, message: "No user found"})}
+  	if (!checkCompany) { res.status(401).send({auth: false, message: "No user found"})}
   	var passwordIsValid = await bcrypt.compareSync(req.body.password, checkCompany.password)
   	if (!passwordIsValid) { res.status(401).send({auth: false, message:"Check your password",token: null})}
   	var token = await jwt.sign({id: checkCompany.id}, secret, { expiresIn: 86400 })
     console.log(token)
-  	res.status(200).send({auth: true, message:"Login success", token: token})
+  	res.status(200).send({auth: true, message:"Login success", token: token, name: checkCompany.name})
   }
   else{
   	res.status(400).send({message:"Please provide the required parameters to login."})
@@ -195,6 +197,8 @@ const availableCompanies = async function(req,res){
       res.send({message:'Please provide token'})
   }
 }
+
+// Company
 
 module.exports = {
   registerCompany,
